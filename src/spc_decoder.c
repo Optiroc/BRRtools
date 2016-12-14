@@ -56,11 +56,11 @@ int main(const int argc, char *const argv[])
 			case 's':
 				samplerate = arg;
 				break;
-			
+
 			case 'm':
 				min_length = atof(optarg);
 				break;
-			
+
 			case 'g':
 				gaussian_lowpass = true;
 				break;
@@ -169,7 +169,7 @@ int main(const int argc, char *const argv[])
 			print_loop_info(looptimes, olds0, olds1);
 
 			if(gaussian_lowpass) apply_gauss_filter(samples, out_blocks * 16);
-			
+
 			generate_wave_file(outwav, samplerate, samples, out_blocks);
 		}
 		else 											//Samples with loop disabled

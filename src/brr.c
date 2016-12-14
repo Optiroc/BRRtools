@@ -167,7 +167,7 @@ void decodeBRR(pcm_t *out) 			//Decode a block of BRR bytes into array pointed b
 void apply_gauss_filter(pcm_t *buffer, size_t length)
 {
 	int prev = (372  + 1304) * buffer[0] + 372 * buffer[1];		// First sample
-	for(unsigned int i=1; i < length-1; ++i)
+	for(int i=1; i < length-1; ++i)
 	{
 		int k0 = 372 * (buffer[i-1] + buffer[i+1]);
 		int k = 1304 * buffer[i];

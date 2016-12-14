@@ -179,7 +179,7 @@ static pcm_t *resample(pcm_t *samples, size_t samples_length, size_t out_length,
 	pcm_t *out = safe_malloc(2 * out_length);
 
 	printf("Resampling by effective ratio of %f...\n", ratio);
-	
+
 	switch(type) {
 	case 'n':								//No interpolation
 		for(int i=0; i<out_length; ++i)
@@ -271,7 +271,7 @@ static pcm_t *resample(pcm_t *samples, size_t samples_length, size_t out_length,
 						sample = samples[samples_length-1];
 				else
 					sample = samples[0];
-				
+
 				acc += sample*sinc(a-j);
 			}
 			out[i] = (pcm_t)acc;
@@ -293,7 +293,7 @@ static pcm_t *treble_boost_filter(pcm_t *samples, size_t length)
 	const double coefs[8] = {0.912962, -0.16199, -0.0153283, 0.0426783, -0.0372004, 0.023436, -0.0105816, 0.00250474};
 
 	pcm_t *out = safe_malloc(length * 2);
-	for(unsigned int i=0; i<length; ++i)
+	for(int i=0; i<length; ++i)
 	{
 		double acc = samples[i] * coefs[0];
 		for(int k=7; k>0; --k)
@@ -379,7 +379,7 @@ int main(const int argc, char *const argv[])
 					fix_loop_en = true;
 				}
 				break;
-			
+
 			case 't':
 				truncate_len = atoi(optarg);
 				break;
@@ -519,7 +519,7 @@ int main(const int argc, char *const argv[])
 			{
 				signed short in16_chns[hdr.chans];
 				fread(in16_chns, 2, hdr.chans, inwav);
-				sample = 0; 
+				sample = 0;
 				for(int ch=0; ch < hdr.chans; ++ch)
 					sample += in16_chns[ch];
 				samples[i] = (pcm_t)(sample * ampl_adjust);
@@ -554,7 +554,7 @@ int main(const int argc, char *const argv[])
 
 	// Apply trebble boost filter (gussian lowpass compensation) if requested by user
 	if(treble_boost) samples = treble_boost_filter(samples, samples_length);
-	
+
 	if ((samples_length % 16) != 0)
 	{
 		int padding = 16 - (samples_length % 16);
@@ -578,7 +578,7 @@ int main(const int argc, char *const argv[])
 		while(padding > 0);
 	}
 	printf("Size of file to encode : %u samples = %u BRR blocks.\n", samples_length, samples_length/16);
-	
+
 	FILE *outbrr = fopen(outbrr_path, "wb");
 	if(!outbrr)
 	{
