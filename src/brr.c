@@ -137,7 +137,7 @@ static void decodeSample (char s, u8 shift_am, u8 filter)
 	if(shift_am <= 0x0c)			//Valid shift count
 		a = ((s < 8 ? s : s-16) << shift_am) >> 1;
 	else
-		a = s < 8 ? 1<<11 : (-1)<<11;		//Values "invalid" shift counts
+		a = s < 8 ? 2048 : -2048;		//Max values
 
 	a += get_brr_prediction(filter, p1, p2);
 

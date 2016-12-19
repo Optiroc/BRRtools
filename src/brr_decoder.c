@@ -88,7 +88,7 @@ int main(const int argc, char *const argv[])
 	int blockamount = size/9;
 	printf("Number of BRR blocks to decode : %d.\n", blockamount);
 
-	if(looppos<0 || looppos>=blockamount)  								//Make sure the loop position is in range
+	if(looppos >= blockamount)  	//Make sure the loop position is in range
 	{
 		fprintf(stderr, "Error : Loop position is out of range\n");
 		exit(1);
