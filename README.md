@@ -1,4 +1,4 @@
-#BRRtools
+# BRRtools
 
 by Bregalad. Special thanks to Kode54.
 Release 3.11 6th January 2014.
@@ -12,12 +12,12 @@ Because this was an useless layer of abstraction which is only useful when devel
 I heavily borrowed encoding algorithms from Kode54, which himself heavily borrowed code from some other ADPCM encoder.
 This is freeware, feel free to redistribute/improve but DON'T CLAIM IT IS YOUR OWN WORK THANK YOU.
 
-##How do I use that
+## How do I use that
 Just go in this folder with a terminal (mingw is required for Windows) and type "make" should normally work. No need for any libraries, or any crap, just compile and enjoy.
 
 BRR Tools currently comes into 3 parts :
 
-###BRR Decoder
+### BRR Decoder
 BRR Decoder decodes a .brr sound sample to a .wav file
 
 	Usage:
@@ -38,7 +38,7 @@ The minimum length functionality forces a looped sample to loop so that its leng
 If you specify a loop count value >1 with the -n or -m commands, BRRDecoder will then tell you if the looping is stable, and if not it tries to detect when it gets stable.
 It will also try to detect which musical note the sample plays (this, of course, depends on the sampling rate).
 
-###SPC Decoder
+### SPC Decoder
 SPC Decoder is similar to BRRDecoder, but decode one or multiple BRR sound samples directly from a .spc file to .wav file(s)
 
 	Usage:
@@ -64,7 +64,7 @@ etc...
 If you only specify the first sample number, SPCDecoder will only decode a single sample, but if you set both first and last samples, it will decode all samples between them.
 As with BRRDecoder, info about sample's looping stability and musical note is written on the screen.
 
-###BRR Encoder
+### BRR Encoder
 BRR Encoder encodes a .wav file to a .brr native SNES sound sample.
 
 	Usage:
@@ -116,27 +116,27 @@ It is safe to use -s or -r in combination with -l, just keep in mind the resampl
 
 You can choose between several interoplation algorithms. I would really recommend to use bandlimited as it is the only algorithm to to guarantee no aliasing in case of resampling by ratio greater than 1.0 (when shortening / worsening the quality of sample) which is often needed to make the samples fit in SPC700's small 64k memory space !
 
-##Known bugs
+## Known bugs
 None known. Please don't complain if bad things (TM) happens if you do stupid things like trying to convert a 1h song in BRR and resample it to fit in 64k. The program have been tested for normal usage only, I did not feel like spending hours to guard against overflow errors in every line of code.
 
-##Trouble shooting
+## Trouble shooting
 If you have problem encoding your samples into BRR or that they sound somehow wrong / distorted, try to use -a0.9 (that is, reduce the amplitude to 90% of the original). Very often, overflow problems happens when resampling a normalized sample (where the entiere range is used), and reducing the amplitude slightly make it work greatly.
 
-##Compiling BRRTools
+## Compiling BRRTools
 The makefile provided is a base to compile BRR tools on both windows systems (using mingw32) and on linux systems. Just change the executable name and flags to suit your needs.
 
 The source files makes some assumptions about type's bitsizes, you can change the typedefs in "common.h" if you are somehow compiling this with a system with different size than the typical 32/64 bit x86 PC.
 It's normal there is a few warnings coming there.
 
-##Plans for future updates
+## Plans for future updates
 * Any suggestions are welcome
 * Could someone make a nice GUI for this program ? It would be amazing ! And personally I have zero knowledge in GUI programming.
 * Support for the Playstation 1 audio format as well.
 
-##Contact
+## Contact
 Contact me at jmasur at bluewin dot ch if you want to give ideas about how I can improve BRRTools, or even better, if you improved the program by yourself.
 
-##History
+## History
 * v1.0 november 2009
 	- First public release
 
