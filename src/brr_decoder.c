@@ -10,7 +10,7 @@
 static void print_instructions()
 {
 	printf(
-		"\n*** BRR Tools 3.0 ***\n\n"
+		"\n*** BRR Tools ***\n\n"
 		"BRR decoder (c) 2013 Bregalad special thanks to Kode54\n"
 		"Usage : brr_decoder [options] infile.brr outfile.wav\n"
 		"Options :\n"

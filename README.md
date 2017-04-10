@@ -1,7 +1,7 @@
 # BRRtools
 
 by Bregalad. Special thanks to Kode54.
-Release 3.11 6th January 2014.
+Minor post-3.11 fixes by Optiroc (David Lindecrantz).
 
 BRRtools are currently the most evolved tools to convert between standard RIFF .wav format and SNES's built-in BRR sound format.
 They have many features never seen before in any other converter, and are open source.
@@ -22,7 +22,7 @@ BRR Decoder decodes a .brr sound sample to a .wav file
 
 	Usage:
 	brr_decoder [options] infile.brr outfile.wav
-	
+
 	Options:
 	-n number of times to loop through the sample, default 1
 	-l loop start point (in BRR block units), default 0
@@ -43,7 +43,7 @@ SPC Decoder is similar to BRRDecoder, but decode one or multiple BRR sound sampl
 
 	Usage:
 	spc_decoder [options] infile.spc outfile
-	
+
 	Options:
 	-n number of times to loop through the sample(s) when applicable, default 1
 	-f first sample # to decode (default : 0)
@@ -69,7 +69,7 @@ BRR Encoder encodes a .wav file to a .brr native SNES sound sample.
 
 	Usage:
 	brr_encoder [options] infile.wav outfile.brr
-	
+
 	Options:
 	-a[ampl] adjust wave amplitude by a factor ampl (default : 1.0)
 	-l(pos) enable looping flag in the encoded BRR sample (default: disabled)
@@ -187,3 +187,9 @@ Contact me at jmasur at bluewin dot ch if you want to give ideas about how I can
 
 * v3.12 decembre 2015
 	- Fixed yet another typo in Gaussian filtering, which was causing a reduced volume.
+
+* v3.13 2016.12.20
+	- Fixed some undefined behaviours and crashes on recent clang and gcc toolchains
+
+* v3.14 2017.04.10
+	- Fixed gcc/linux math library linkage

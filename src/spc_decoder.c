@@ -11,7 +11,7 @@
 static void print_instructions()
 {
 	printf(
-		"\n*** BRR Tools 3.12 ***\n\n"
+		"\n*** BRR Tools ***\n\n"
 		"SPC decoder (c) 2013 Bregalad special thanks to Kode54\n"
 		"Usage : spc_decoder [options] infile.spc outfile\n"
 		"Options :\n"
