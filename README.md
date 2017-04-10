@@ -15,7 +15,7 @@ This is freeware, feel free to redistribute/improve but DON'T CLAIM IT IS YOUR O
 ## How to use
 Just go in this folder with a terminal (mingw is required for Windows) and typing `make` should normally work.
 
-BRRTools comes in 3 parts:
+BRRtools comes in 3 parts:
 
 ### brr_decoder
 brr_decoder decodes a .brr sound sample to a .wav file
@@ -119,7 +119,7 @@ You can choose between several interoplation algorithms. I would really recommen
 ## Troubleshooting
 If you have problem encoding your samples into BRR or that they sound somehow wrong/distorted, try to use `-a0.9` (that is, reduce the amplitude to 90% of the original). Very often, overflow problems happens when resampling a normalized sample (where the entire range is used), and reducing the amplitude slightly make it work greatly.
 
-## Compiling BRRTools
+## Compiling BRRtools
 The makefile provided is a base to compile BRR tools on both windows systems (using mingw32) and on linux systems. Just change the executable name and flags to suit your needs.
 
 The source files makes some assumptions about type's bitsizes, you can change the typedefs in `common.h` if you are somehow compiling this with a system with different size than the typical 32/64 bit x86 PC.
@@ -131,7 +131,7 @@ It's normal there is a few warnings coming there.
 * Support for the Playstation 1 audio format.
 
 ## Contact
-Contact me at jmasur at bluewin dot ch if you want to give ideas about how I can improve BRRTools, or even better, if you improved the program by yourself.
+Contact me at jmasur at bluewin dot ch if you want to give ideas about how I can improve BRRtools, or even better, if you improved the program by yourself.
 
 ## History
 * v1.0 november 2009
