@@ -11,8 +11,9 @@
 static void print_instructions()
 {
 	printf(
-		"\n*** BRRtools ***\n\n"
+		"\n*** BRRtools 3.14 ***\n\n"
 		"brr_encoder (c) 2013 Bregalad special tanks to Kode54\n"
+		"32-bit-int version by jimbo1qaz\n"
 		"Usage : brr_encoder [options] infile.wav outfile.brr\n"
 		"Options :\n"
 		"-a[ampl] adjust wave amplitude by a factor ampl (default : 1.0)\n"
@@ -36,6 +37,8 @@ static void print_instructions()
 	);
 	exit(1);
 }
+
+#define WIDTH sizeof(pcm_t)
 
 static u8 filter_at_loop = 0;
 static pcm_t p1_at_loop, p2_at_loop;
@@ -176,7 +179,7 @@ static void ADPCMBlockMash(const pcm_t PCM_data[16], bool is_loop_point, bool is
 static pcm_t *resample(pcm_t *samples, size_t samples_length, size_t out_length, char type)
 {
 	double ratio = (double)samples_length / (double)out_length;
-	pcm_t *out = safe_malloc(2 * out_length);
+	pcm_t *out = safe_malloc(WIDTH * out_length);
 
 	printf("Resampling by effective ratio of %f...\n", ratio);
 
@@ -233,7 +236,7 @@ static pcm_t *resample(pcm_t *samples, size_t samples_length, size_t out_length,
 		// Antialisaing pre-filtering
 		if(ratio > 1.0)
 		{
-			signed short *samples_antialiased = safe_malloc(2 * samples_length);
+			pcm_t *samples_antialiased = safe_malloc(WIDTH * samples_length);
 
 			#define FIR_ORDER (15)
 			double fir_coefs[FIR_ORDER+1];
@@ -292,7 +295,7 @@ static pcm_t *treble_boost_filter(pcm_t *samples, size_t length)
 {	// Tepples' coefficient multiplied by 0.6 to avoid overflow in most cases
 	const double coefs[8] = {0.912962, -0.16199, -0.0153283, 0.0426783, -0.0372004, 0.023436, -0.0105816, 0.00250474};
 
-	pcm_t *out = safe_malloc(length * 2);
+	pcm_t *out = safe_malloc(length * WIDTH);
 	for(int i=0; i<length; ++i)
 	{
 		double acc = samples[i] * coefs[0];
@@ -495,7 +498,7 @@ int main(const int argc, char *const argv[])
 	if(truncate_len && (truncate_len < samples_length))
 		samples_length = truncate_len;
 
-	pcm_t *samples = safe_malloc(2*samples_length);
+	pcm_t *samples = safe_malloc(WIDTH * samples_length);
 
 	// Adjust amplitude in function of amount of channels
 	ampl_adjust /= hdr.chans;
@@ -564,13 +567,13 @@ int main(const int argc, char *const argv[])
 		, padding);
 
 		// Increase buffer size and add zeroes at beginning
-		samples = realloc(samples, 2*(samples_length + padding));
+		samples = realloc(samples, WIDTH*(samples_length + padding));
 		if(!samples)
 		{
 			fprintf(stderr, "Error : Can't allocate memory.\n");
 			exit(1);
 		}
-		memmove(samples + padding, samples, 2*samples_length);
+		memmove(samples + padding, samples, WIDTH*samples_length);
 		samples_length += padding;
 
 		do
