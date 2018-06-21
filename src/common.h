@@ -22,7 +22,7 @@ void *safe_malloc(const size_t s);
 
 #define MAX(a, b) ((a)>(b) ? (a) : (b))
 
-typedef signed int pcm_t;
+typedef signed short pcm_t;
 typedef unsigned char u8;
 typedef unsigned short u16;
 typedef unsigned int u32;
