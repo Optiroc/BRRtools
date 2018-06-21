@@ -38,10 +38,11 @@ static void print_instructions()
 	exit(1);
 }
 
-#define WIDTH sizeof(pcm_t)
+typedef signed int Sample;		// -rb and -g causes signed shorts to overflow and wrap around.
+#define WIDTH sizeof(Sample)
 
 static u8 filter_at_loop = 0;
-static pcm_t p1_at_loop, p2_at_loop;
+static Sample p1_at_loop, p2_at_loop;
 static bool FIRen[4] = {true, true, true, true};	// Which BRR filters are enabled
 static unsigned int FIRstats[4] = {0, 0, 0, 0};	// Statistincs on BRR filter usage
 static bool wrap_en = true;
@@ -61,11 +62,11 @@ static double sinc(const double x)
 
 #define CLAMP_16(n) ( ((signed short)(n) != (n)) ? ((signed short)(0x7fff - ((n)>>24))) : (n) )
 
-static double ADPCMMash(unsigned int shiftamount, u8 filter, const pcm_t PCM_data[16], bool write, bool is_end_point)
+static double ADPCMMash(unsigned int shiftamount, u8 filter, const Sample PCM_data[16], bool write, bool is_end_point)
 {
 	double d2=0.0;
-	pcm_t l1 = p1;
-	pcm_t l2 = p2;
+	Sample l1 = p1;
+	Sample l2 = p2;
 	int step = 1<<shiftamount;
 
 	int vlin, d, da, dp, c;
@@ -102,7 +103,7 @@ static double ADPCMMash(unsigned int shiftamount, u8 filter, const pcm_t PCM_dat
 		c &= 0x0f;		/* mask to 4 bits */
 
 		l2 = l1;			/* shift history */
-		l1 = (pcm_t) ( CLAMP_16( vlin + dp ) * 2 );
+		l1 = (Sample) ( CLAMP_16( vlin + dp ) * 2 );
 
 		d = PCM_data[i] - l1;
 		d2 += (double)d * d;		/* update square-error */
@@ -149,7 +150,7 @@ static double ADPCMMash(unsigned int shiftamount, u8 filter, const pcm_t PCM_dat
 }
 
 // Encode a ADPCM block using brute force over filters and shift amounts
-static void ADPCMBlockMash(const pcm_t PCM_data[16], bool is_loop_point, bool is_end_point)
+static void ADPCMBlockMash(const Sample PCM_data[16], bool is_loop_point, bool is_end_point)
 {
 	int smin, kmin;
 	double dmin = INFINITY;
@@ -176,10 +177,10 @@ static void ADPCMBlockMash(const pcm_t PCM_data[16], bool is_loop_point, bool is
 	FIRstats[kmin]++;
 }
 
-static pcm_t *resample(pcm_t *samples, size_t samples_length, size_t out_length, char type)
+static Sample *resample(Sample *samples, size_t samples_length, size_t out_length, char type)
 {
 	double ratio = (double)samples_length / (double)out_length;
-	pcm_t *out = safe_malloc(WIDTH * out_length);
+	Sample *out = safe_malloc(WIDTH * out_length);
 
 	printf("Resampling by effective ratio of %f...\n", ratio);
 
@@ -236,7 +237,7 @@ static pcm_t *resample(pcm_t *samples, size_t samples_length, size_t out_length,
 		// Antialisaing pre-filtering
 		if(ratio > 1.0)
 		{
-			pcm_t *samples_antialiased = safe_malloc(WIDTH * samples_length);
+			Sample *samples_antialiased = safe_malloc(WIDTH * samples_length);
 
 			#define FIR_ORDER (15)
 			double fir_coefs[FIR_ORDER+1];
@@ -253,7 +254,7 @@ static pcm_t *resample(pcm_t *samples, size_t samples_length, size_t out_length,
 					acc += fir_coefs[k] * ((i+k < samples_length) ? samples[i+k] : samples[samples_length-1]);
 					acc += fir_coefs[k] * ((i-k >= 0) ? samples[i-k] : samples[0]);
 				}
-				samples_antialiased[i] = (pcm_t)acc;
+				samples_antialiased[i] = (Sample)acc;
 			}
 
 			free(samples);
@@ -266,7 +267,7 @@ static pcm_t *resample(pcm_t *samples, size_t samples_length, size_t out_length,
 			double acc = 0.0;
 			for(int j=(int)a-FIR_ORDER; j<=(int)a+FIR_ORDER; ++j)
 			{
-				pcm_t sample;
+				Sample sample;
 				if(j >=0)
 					if(j < samples_length)
 						sample = samples[j];
@@ -277,7 +278,7 @@ static pcm_t *resample(pcm_t *samples, size_t samples_length, size_t out_length,
 
 				acc += sample*sinc(a-j);
 			}
-			out[i] = (pcm_t)acc;
+			out[i] = (Sample)acc;
 		}
 		break;
 
@@ -291,11 +292,11 @@ static pcm_t *resample(pcm_t *samples, size_t samples_length, size_t out_length,
 }
 
 // This function applies a treble boosting filter that compensates the gauss lowpass filter
-static pcm_t *treble_boost_filter(pcm_t *samples, size_t length)
+static Sample *treble_boost_filter(Sample *samples, size_t length)
 {	// Tepples' coefficient multiplied by 0.6 to avoid overflow in most cases
 	const double coefs[8] = {0.912962, -0.16199, -0.0153283, 0.0426783, -0.0372004, 0.023436, -0.0105816, 0.00250474};
 
-	pcm_t *out = safe_malloc(length * WIDTH);
+	Sample *out = safe_malloc(length * WIDTH);
 	for(int i=0; i<length; ++i)
 	{
 		double acc = samples[i] * coefs[0];
@@ -498,7 +499,7 @@ int main(const int argc, char *const argv[])
 	if(truncate_len && (truncate_len < samples_length))
 		samples_length = truncate_len;
 
-	pcm_t *samples = safe_malloc(WIDTH * samples_length);
+	Sample *samples = safe_malloc(WIDTH * samples_length);
 
 	// Adjust amplitude in function of amount of channels
 	ampl_adjust /= hdr.chans;
@@ -513,7 +514,7 @@ int main(const int argc, char *const argv[])
 				sample = 0;
 				for(int ch=0; ch < hdr.chans; ++ch)		// Average samples of all channels
 					sample += in8_chns[ch]-0x80;
-				samples[i] = (pcm_t)((sample<<8) * ampl_adjust);
+				samples[i] = (Sample)((sample<<8) * ampl_adjust);
 			}
 			break;
 
@@ -525,7 +526,7 @@ int main(const int argc, char *const argv[])
 				sample = 0;
 				for(int ch=0; ch < hdr.chans; ++ch)
 					sample += in16_chns[ch];
-				samples[i] = (pcm_t)(sample * ampl_adjust);
+				samples[i] = (Sample)(sample * ampl_adjust);
 			}
 			break;
 
