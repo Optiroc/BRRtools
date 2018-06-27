@@ -1,7 +1,7 @@
 # BRRtools
 
 by Bregalad. Special thanks to Kode54.  
-Minor post-3.11 fixes by Optiroc (David Lindecrantz). 
+Bug fixes and improvements by jimbo1qaz and Optiroc.  
 
 BRRtools are currently the most evolved tools to convert between standard RIFF .wav format and SNES's built-in BRR sound format.
 They have many features never seen before in any other converter, and are open source.
@@ -134,10 +134,10 @@ It's normal there is a few warnings coming there.
 Contact me at jmasur at bluewin dot ch if you want to give ideas about how I can improve BRRtools, or even better, if you improved the program by yourself.
 
 ## History
-* v1.0 november 2009
+* v1.0 (2009.11)
 	- First public release
 
-* v2.0 march 2012
+* v2.0 (2012.03)
 	- brr_decoder:
 		- Decodes way faster than before.
 		- Changed the command line interface
@@ -159,12 +159,12 @@ Contact me at jmasur at bluewin dot ch if you want to give ideas about how I can
 		- You have to pick the beginning of the filename for the output file(s)
 		- Samples without looping are treated as so
 
-* v2.1 march 2012
+* v2.1 (2012.03)
 	- spc_decoder:
 		- Fixes something in the documentation
 		- Added the "minimum length" functionality
 
-* v3.0 october 2013
+* v3.0 (2013.10)
 	- The program was ported from Java to C, so that the efficiency and ease of use is increased. Only source code and win32 binaries are provided, users of different platforms will have to recompile the program by themselves. Command line interface changed (obviously).
 
 	- brr_decoder:
@@ -176,17 +176,20 @@ Contact me at jmasur at bluewin dot ch if you want to give ideas about how I can
 		- Decision of filters before looping is now "smarter" (thanks Kode64)
 		- Resampling is reorganized so that it's always a rational ratio
 
-* v3.1 november 2013
+* v3.1 (2013.11)
 	- Now gaussian filtering is supported both when encoding and decoding with the `-g` option. When decoding, a lowpass filter will be applied simulating real hardware. When decoding, a trebble boost filter is applied to compensate for the filtering done at decoding time.
 
-* v3.11 january 2014
+* v3.11 (2014.01)
 	- Fixed a little bug in brr_encoder, that was causing garbage at the begining of samples when resampled with -sb.
 
-* v3.12 decembre 2015
+* v3.12 (2015.12)
 	- Fixed yet another typo in gaussian filtering, which was causing a reduced volume.
 
-* v3.13 2016.12.20
+* v3.13 (2016.12.20)
 	- Fixed some undefined behaviours and crashes on recent clang and gcc toolchains (optiroc)
 
-* v3.14 2017.04.10
+* v3.14 (2017.04.10)
 	- Fixed gcc/linux math library linkage (optiroc)
+
+* v3.15 (2018.06.27)
+	- Fixed formerly broken signal processing by using higher precision integers (jimbo1qaz)

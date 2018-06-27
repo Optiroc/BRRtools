@@ -11,9 +11,7 @@
 static void print_instructions()
 {
 	printf(
-		"\n*** BRRtools 3.14 ***\n\n"
-		"brr_encoder (c) 2013 Bregalad special tanks to Kode54\n"
-		"32-bit-int version by jimbo1qaz\n"
+		"brr_encoder 3.15\n\n"
 		"Usage : brr_encoder [options] infile.wav outfile.brr\n"
 		"Options :\n"
 		"-a[ampl] adjust wave amplitude by a factor ampl (default : 1.0)\n"
