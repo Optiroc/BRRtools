@@ -10,8 +10,7 @@
 static void print_instructions()
 {
 	printf(
-		"\n*** BRRtools ***\n\n"
-		"brr_decoder (c) 2013 Bregalad special thanks to Kode54\n"
+		"brr_decoder 3.15\n\n"
 		"Usage : brr_decoder [options] infile.brr outfile.wav\n"
 		"Options :\n"
 		"-n number of times to loop through the sample, default 1\n"
