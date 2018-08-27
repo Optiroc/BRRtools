@@ -13,7 +13,7 @@ I heavily borrowed encoding algorithms from Kode54, which himself heavily borrow
 This is freeware, feel free to redistribute/improve but DON'T CLAIM IT IS YOUR OWN WORK THANK YOU.
 
 ## How to use
-Just go in this folder with a terminal (mingw is required for Windows) and typing `make` should normally work.
+Building the tools requires a C toolchain and make. Cygwin is recommended on Windows, most other operating systems should be good to go. 
 
 BRRtools comes in 3 parts:
 
