@@ -535,20 +535,21 @@ int main(const int argc, char *const argv[])
 	}
 	fclose(inwav);		// We're done with the input wave file
 
-	unsigned int target_length;
-	if(target_samplerate)						// Set resample factor if auto samplerate mode
-		target_length = ((long long)samples_length * target_samplerate) /  hdr.sample_rate;
-	else
-		target_length = (int)(samples_length/ratio);
+	if(target_samplerate) {
+		ratio = 1.0 * hdr.sample_rate / target_samplerate;
+	}
 
+	unsigned int target_length;
 	unsigned int new_loopsize;
-	if(fix_loop_en)
-	{
-		unsigned int loopsize = ((long long)(samples_length - loop_start) * target_length) / samples_length;
+
+	if (!fix_loop_en)
+		target_length = round(samples_length/ratio);
+	else {
+		double loopsize = (samples_length - loop_start) / ratio;
 		// New loopsize is the multiple of 16 that comes after loopsize
-		new_loopsize = ((loopsize + 15)/16)*16;
+		new_loopsize = ceil(loopsize/16)*16;
 		// Adjust resampling
-		target_length = ((long long)target_length * new_loopsize) / loopsize;
+		target_length = round(samples_length/ratio * new_loopsize / loopsize);
 	}
 
 	samples = resample(samples, samples_length, target_length, resample_type);
