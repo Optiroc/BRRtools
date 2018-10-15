@@ -316,7 +316,7 @@ int main(const int argc, char *const argv[])
     char loop_flag = 0;						// = 0x02 if loop flag is active
     unsigned int target_samplerate = 0;		// Output sample rate (0 = don't change)
     bool fix_loop_en = false;				// True if fixed loop is activated
-	unsigned int loop_start;				// Starting point of loop
+	signed int loop_start;				// Starting point of loop
 	unsigned int truncate_len = 0;			// Point at which input wave will be truncated (if = 0, input wave is not truncated)
 	bool treble_boost = false;
 
@@ -545,6 +545,10 @@ int main(const int argc, char *const argv[])
 	if (!fix_loop_en)
 		target_length = round(samples_length/ratio);
 	else {
+		if (loop_start < 0) {
+			loop_start += samples_length;
+		}
+
 		double loopsize = (samples_length - loop_start) / ratio;
 		// New loopsize is the multiple of 16 that comes after loopsize
 		new_loopsize = ceil(loopsize/16)*16;
