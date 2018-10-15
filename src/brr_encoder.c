@@ -20,7 +20,7 @@ static void print_instructions()
 		"   The output will be resampled in a way so the looped part of the sample is\n"
 		"   an integer # of BRR blocks.\n"
 		"-f[0123] manually enable filters for BRR blocks (default : all enabled)\n"
-		"-r[type][ratio] resample input stream, followed by resample ratio (0.0 to 4.0)\n"
+		"-r[type][ratio] resample input stream, followed by resample ratio (> 0.0)\n"
 		"  (lower means more samples at output, better quality but increased size,\n"
 		"  higher means less smaples, worse quality but decreased size).\n"
 		"-s[type][rate] automatically resample to get the specified samplerate\n"
@@ -364,7 +364,7 @@ int main(const int argc, char *const argv[])
 			case 'r':
 				resample_type = optarg[0];
 				ratio = atof(optarg+1);
-				if(ratio <= 0.0 || ratio > 4.0)
+				if(ratio <= 0.0)
 					print_instructions();
 				break;
 
