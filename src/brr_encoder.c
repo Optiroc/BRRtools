@@ -411,8 +411,7 @@ int main(const int argc, char *const argv[])
 	{
 		char chunk_ID[4];				// Should be 'RIFF'
 		u32 chunk_size;
-		char wave_str[4];				// Should be 'WAVE'
-		char sc1_id[4];					// Should be 'fmt '
+		char wave_sc1[8];				// Should be 'WAVEfmt '
 		u32 sc1size;					// Should be at least 16
 		u16 audio_format;				// Should be 1 for PCM
 		u16 chans;						// 1 for mono, 2 for stereo, etc...
@@ -439,7 +438,7 @@ int main(const int argc, char *const argv[])
 		exit(1);
 	}
 	// "WAVEfmt" letters
-	if(strncmp(hdr.wave_str, "WAVEfmt ", 8))
+	if(strncmp(hdr.wave_sc1, "WAVEfmt ", 8))
 	{
 		fprintf(stderr, "Input file in unsupported format : \"WAVEfmt\" block missing !\n");
 		exit(1);
