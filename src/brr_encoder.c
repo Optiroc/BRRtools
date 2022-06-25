@@ -291,8 +291,8 @@ static Sample *resample(Sample *samples, size_t samples_length, size_t out_lengt
 
 // This function applies a treble boosting filter that compensates the gauss lowpass filter
 static Sample *treble_boost_filter(Sample *samples, size_t length)
-{	// Tepples' coefficient multiplied by 0.6 to avoid overflow in most cases
-	const double coefs[8] = {0.912962, -0.16199, -0.0153283, 0.0426783, -0.0372004, 0.023436, -0.0105816, 0.00250474};
+{	// _aitchFactor's extra-strength treble coefficients. Will NOT avoid overflow in "most cases", so be sure to use the -a argument.
+	const double coefs[8] = {1.9217103952113372, -0.5994384267807413, 0.17887093788411362, -0.05159995503143885, 0.0143747873832524, -0.003860033140695586, 0.000996587786441055, -0.0002465337124750318};
 
 	Sample *out = safe_malloc(length * WIDTH);
 	for(int i=0; i<length; ++i)
