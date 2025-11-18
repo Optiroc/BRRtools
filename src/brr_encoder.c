@@ -400,144 +400,198 @@ int main(const int argc, char *const argv[])
 	char *inwav_path = argv[optind];			// Path of input and output files
 	char *outbrr_path = argv[optind+1];
 
-	FILE *inwav = fopen(inwav_path, "rb");
-	if(!inwav)
-	{
-		fprintf(stderr, "Error : Can't open file %s for reading.\n", inwav_path);
-		exit(1);
-	}
+    FILE *inwav = fopen(inwav_path, "rb");
+    if (!inwav)
+    {
+        fprintf(stderr, "Error : Can't open file %s for reading.\n", inwav_path);
+        exit(1);
+    }
 
-	struct
-	{
-		char chunk_ID[4];				// Should be 'RIFF'
-		u32 chunk_size;
-		char wave_str[4];				// Should be 'WAVE'
-		char sc1_id[4];					// Should be 'fmt '
-		u32 sc1size;					// Should be at least 16
-		u16 audio_format;				// Should be 1 for PCM
-		u16 chans;						// 1 for mono, 2 for stereo, etc...
-		u32 sample_rate;
-		u32 byte_rate;
-		u16 block_align;
-		u16 bits_per_sample;
-	}
-	hdr;
+    // Read RIFF header (first 12 bytes only)
+    struct
+    {
+        char chunk_ID[4]; // Should be 'RIFF'
+        u32 chunk_size;
+        char wave_str[4]; // Should be 'WAVE'
+    } riff_hdr;
 
-	// Read header
-	int err = fread(&hdr, 1, sizeof(hdr), inwav);
-	// If they couldn't read the file (for example if it's too small)
-	if(err != sizeof(hdr))
-	{
-		fprintf(stderr, "Error : Input file in incompatible format %d\n", err);
-		exit(1);
-	}
+    int err = fread(&riff_hdr, 1, sizeof(riff_hdr), inwav);
+    if (err != sizeof(riff_hdr))
+    {
+        fprintf(stderr, "Error : Input file too small or unreadable\n");
+        exit(1);
+    }
 
-	// Read "RIFF" word
-	if(strncmp(hdr.chunk_ID, "RIFF", 4))
-	{
-		fprintf(stderr, "Error : Input file in unsupported format : \"RIFF\" block missing.\n");
-		exit(1);
-	}
-	// "WAVEfmt" letters
-	if(strncmp(hdr.wave_str, "WAVEfmt ", 8))
-	{
-		fprintf(stderr, "Input file in unsupported format : \"WAVEfmt\" block missing !\n");
-		exit(1);
-	}
+    // Validate RIFF header
+    if (strncmp(riff_hdr.chunk_ID, "RIFF", 4))
+    {
+        fprintf(stderr, "Error : Input file in unsupported format : \"RIFF\" block missing.\n");
+        exit(1);
+    }
 
-	//Size of sub-chunk1 (header) must be at least 16 and in PCM format
-	if(hdr.sc1size < 0x10 || hdr.audio_format != 1)
-	{
-		fprintf(stderr, "Input file in unsupported format : file must be uncompressed PCM !\n");
-		exit(1);
-	}
+    if (strncmp(riff_hdr.wave_str, "WAVE", 4))
+    {
+        fprintf(stderr, "Error : Input file in unsupported format : \"WAVE\" marker missing.\n");
+        exit(1);
+    }
 
-	//Check how many channels
-	if(hdr.chans != 1)
-		printf("Input is multi-channel : Will automatically be converted to mono.\n");
+    // Variables to store fmt chunk data
+    struct
+    {
+        u32 sc1size;      // fmt chunk size
+        u16 audio_format; // Should be 1 for PCM
+        u16 chans;        // 1 for mono, 2 for stereo, etc...
+        u32 sample_rate;
+        u32 byte_rate;
+        u16 block_align;
+        u16 bits_per_sample;
+    } fmt_data;
 
-	// Check for correctness of byte rate
-	if(hdr.byte_rate != hdr.sample_rate*hdr.chans*hdr.bits_per_sample/8)
-	{
-		fprintf(stderr, "Byte rate in input file is set incorrectly.\n");
-		exit(1);
-	}
+    bool fmt_found = false;
 
-	//Read block align and bits per sample numbers
-	if(hdr.block_align != hdr.bits_per_sample*hdr.chans/8)
-	{
-		fprintf(stderr, "Block align in input file is set incorrectly\n");
-		exit(1);
-	}
-	fseek(inwav, hdr.sc1size-0x10, SEEK_CUR);			// nSkip possible longer header
+    // Parse chunks until we find 'fmt '
+    while (!fmt_found && !feof(inwav))
+    {
+        char chunk_id[4];
+        u32 chunk_size;
 
-	struct
-	{
-		char name[4];
-		u32 size;
-	}
-	sub_hdr;
-	while(true)
-	{
-		err = fread(&sub_hdr, 1, sizeof(sub_hdr), inwav);
-		if(err != sizeof(sub_hdr))
-		{
-			fprintf(stderr, "End of file reached without finding a \"data\" chunk.\n");
-			exit(1);
-		}
-		if(strncmp(sub_hdr.name, "data", 4))			// If there is anyother non-"data" block, skip it
-			fseek(inwav, sub_hdr.size, SEEK_CUR);
-		else
-			break;
-	}
+        if (fread(chunk_id, 1, 4, inwav) != 4)
+            break;
+        if (fread(&chunk_size, 1, 4, inwav) != 4)
+            break;
 
-	// Output buffer
-	unsigned int samples_length = sub_hdr.size/hdr.block_align;
-	// Optional truncation of input sample
-	if(truncate_len && (truncate_len < samples_length))
-		samples_length = truncate_len;
+        if (strncmp(chunk_id, "fmt ", 4) == 0)
+        {
+            // Found fmt chunk - read it
+            fmt_found = true;
+            fmt_data.sc1size = chunk_size;
 
-	Sample *samples = safe_malloc(WIDTH * samples_length);
+            // Read the standard 16 bytes of fmt data
+            if (fread(&fmt_data.audio_format, 1, 16, inwav) != 16)
+            {
+                fprintf(stderr, "Error : fmt chunk is too small\n");
+                exit(1);
+            }
 
-	// Adjust amplitude in function of amount of channels
-	ampl_adjust /= hdr.chans;
-	switch (hdr.bits_per_sample)
-	{
-		signed int sample;
-		case 8 :
-			for(int i=0; i < samples_length; ++i)
-			{
-				unsigned char in8_chns[hdr.chans];
-				fread(in8_chns, 1, hdr.chans, inwav);	// Read single sample on CHANS channels at a time
-				sample = 0;
-				for(int ch=0; ch < hdr.chans; ++ch)		// Average samples of all channels
-					sample += in8_chns[ch]-0x80;
-				samples[i] = (Sample)((sample<<8) * ampl_adjust);
-			}
-			break;
+            // Validate format
+            if (fmt_data.sc1size < 0x10 || fmt_data.audio_format != 1)
+            {
+                fprintf(stderr, "Input file in unsupported format : file must be uncompressed PCM !\n");
+                exit(1);
+            }
 
-		case 16 :
-			for(int i=0; i < samples_length; ++i)
-			{
-				signed short in16_chns[hdr.chans];
-				fread(in16_chns, 2, hdr.chans, inwav);
-				sample = 0;
-				for(int ch=0; ch < hdr.chans; ++ch)
-					sample += in16_chns[ch];
-				samples[i] = (Sample)(sample * ampl_adjust);
-			}
-			break;
+            // Check for correctness of byte rate
+            if (fmt_data.byte_rate != fmt_data.sample_rate * fmt_data.chans * fmt_data.bits_per_sample / 8)
+            {
+                fprintf(stderr, "Byte rate in input file is set incorrectly.\n");
+                exit(1);
+            }
 
-		// If you encounter the error below, add your implementation for different # of bits
-		default :
-			fprintf(stderr, "Error : unsupported amount of bits per sample (8 or 16 are supported)\n");
-			exit(1);
-	}
-	fclose(inwav);		// We're done with the input wave file
+            // Check block align
+            if (fmt_data.block_align != fmt_data.bits_per_sample * fmt_data.chans / 8)
+            {
+                fprintf(stderr, "Block align in input file is set incorrectly\n");
+                exit(1);
+            }
 
-	if(target_samplerate) {
-		ratio = 1.0 * hdr.sample_rate / target_samplerate;
-	}
+            // Check channels
+            if (fmt_data.chans != 1)
+                printf("Input is multi-channel : Will automatically be converted to mono.\n");
+
+            // Skip any extra bytes in fmt chunk (e.g., if chunk_size > 16)
+            if (fmt_data.sc1size > 16)
+                fseek(inwav, fmt_data.sc1size - 16, SEEK_CUR);
+        }
+        else
+        {
+            // Unknown chunk - skip it
+            fseek(inwav, chunk_size, SEEK_CUR);
+            // Handle odd-sized chunks (RIFF spec requires 16-bit alignment)
+            if (chunk_size % 2 == 1)
+                fseek(inwav, 1, SEEK_CUR);
+        }
+    }
+
+    if (!fmt_found)
+    {
+        fprintf(stderr, "Error : No \"fmt \" chunk found in WAV file\n");
+        exit(1);
+    }
+
+    // Now find the data chunk (rest of code stays mostly the same)
+    struct
+    {
+        char name[4];
+        u32 size;
+    } sub_hdr;
+
+    while (true)
+    {
+        err = fread(&sub_hdr, 1, sizeof(sub_hdr), inwav);
+        if (err != sizeof(sub_hdr))
+        {
+            fprintf(stderr, "End of file reached without finding a \"data\" chunk.\n");
+            exit(1);
+        }
+        if (strncmp(sub_hdr.name, "data", 4))
+        {
+            // Skip non-data chunks
+            fseek(inwav, sub_hdr.size, SEEK_CUR);
+            // Handle odd-sized chunks
+            if (sub_hdr.size % 2 == 1)
+                fseek(inwav, 1, SEEK_CUR);
+        }
+        else
+            break;
+    }
+
+    // Output buffer
+    unsigned int samples_length = sub_hdr.size / fmt_data.block_align;
+    // Optional truncation of input sample
+    if (truncate_len && (truncate_len < samples_length))
+        samples_length = truncate_len;
+
+    Sample *samples = safe_malloc(WIDTH * samples_length);
+
+    // Adjust amplitude in function of amount of channels
+    ampl_adjust /= fmt_data.chans;
+    switch (fmt_data.bits_per_sample)
+    {
+        signed int sample;
+    case 8:
+        for (int i = 0; i < samples_length; ++i)
+        {
+            unsigned char in8_chns[fmt_data.chans];
+            fread(in8_chns, 1, fmt_data.chans, inwav);
+            sample = 0;
+            for (int ch = 0; ch < fmt_data.chans; ++ch)
+                sample += in8_chns[ch] - 0x80;
+            samples[i] = (Sample)((sample << 8) * ampl_adjust);
+        }
+        break;
+
+    case 16:
+        for (int i = 0; i < samples_length; ++i)
+        {
+            signed short in16_chns[fmt_data.chans];
+            fread(in16_chns, 2, fmt_data.chans, inwav);
+            sample = 0;
+            for (int ch = 0; ch < fmt_data.chans; ++ch)
+                sample += in16_chns[ch];
+            samples[i] = (Sample)(sample * ampl_adjust);
+        }
+        break;
+
+    default:
+        fprintf(stderr, "Error : unsupported amount of bits per sample (8 or 16 are supported)\n");
+        exit(1);
+    }
+    fclose(inwav); // We're done with the input wave file
+
+    if (target_samplerate)
+    {
+        ratio = 1.0 * fmt_data.sample_rate / target_samplerate;
+    }
 
 	unsigned int target_length;
 	unsigned int new_loopsize;
