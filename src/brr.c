@@ -109,7 +109,7 @@ int get_brr_prediction(u8 filter, pcm_t p1, pcm_t p2)
 
 		case 1:
 			p = p1;
-			p -= p1 >> 4;
+			p += (-p1) >> 4;
 			return p;
 
 		case 2:
